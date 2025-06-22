@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留學旅行拼音挑戰</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .character-display {
+            font-size: 72px;
+            text-align: center;
+            margin: 30px 0;
+            color: #e74c3c;
+        }
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .option-btn {
+            padding: 15px;
+            font-size: 18px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .option-btn:hover {
+            background-color: #2980b9;
+        }
+        .score-display {
+            text-align: center;
+            font-size: 20px;
+            margin: 20px 0;
+        }
+        .progress-bar {
+            height: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .progress {
+            height: 100%;
+            background-color: #2ecc71;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        .feedback {
+            text-align: center;
+            min-height: 30px;
+            font-size: 18px;
+            margin: 15px 0;
+        }
+        .correct {
+            color: #27ae60;
+        }
+        .incorrect {
+            color: #e74c3c;
+        }
+        .next-btn, .restart-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 12px 25px;
+            font-size: 18px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .restart-btn {
+            background-color: #e74c3c;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>留學旅行拼音挑戰</h1>
+        
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        
+        <div class="score-display">
+            得分: <span id="score">0</span> / <span id="total">0</span>
+        </div>
+        
+        <div class="character-display" id="character"></div>
+        
+        <div class="options-container" id="options"></div>
+        
+        <div class="feedback" id="feedback"></div>
+        
+        <button class="next-btn hidden" id="next-btn">下一題</button>
+        
+        <div id="result" class="hidden">
+            <h2>測驗完成！</h2>
+            <p>你的最終得分是: <span id="final-score">0</span> / <span id="final-total">0</span></p>
+            <p id="result-message"></p>
+            <button class="restart-btn" id="restart-btn">再玩一次</button>
+        </div>
+    </div>
+
+    <script>
+        // 詞庫 - 學校交流與旅行相關詞彙
+        const vocabulary = [
+            { word: "簽證", pinyin: "qiān zhèng", options: ["qiān zhèng", "qián zhèng", "qiǎn zhèng", "qiàn zhèng"] },
+            { word: "宿舍", pinyin: "sù shè", options: ["sù shè", "shù shè", "sù shě", "shù shě"] },
+            { word: "行李箱", pinyin: "xíng lǐ xiāng", options: ["xíng lǐ xiāng", "xíng lǐ xiàng", "xìn lǐ xiāng", "xìn lǐ xiàng"] },
+            { word: "交流生", pinyin: "jiāo liú shēng", options: ["jiāo liú shēng", "jiǎo liú shēng", "jiāo liú shén", "jiǎo liú shén"] },
+            { word: "登機牌", pinyin: "dēng jī pái", options: ["dēng jī pái", "déng jī pái", "dēng jī pāi", "déng jī pāi"] },
+            { word: "學生證", pinyin: "xué shēng zhèng", options: ["xué shēng zhèng", "xuě shēng zhèng", "xué shén zhèng", "xuě shén zhèng"] },
+            { word: "轉機", pinyin: "zhuǎn jī", options: ["zhuǎn jī", "zhuàn jī", "zuǎn jī", "zuàn jī"] },
+            { word: "學分", pinyin: "xué fēn", options: ["xué fēn", "xuě fēn", "xué fén", "xuě fén"] },
+            { word: "護照", pinyin: "hù zhào", options: ["hù zhào", "hú zhào", "hù zào", "hú zào"] },
+            { word: "寄宿家庭", pinyin: "jì sù jiā tíng", options: ["jì sù jiā tíng", "jī sù jiā tíng", "jì shù jiā tíng", "jī shù jiā tíng"] },
+            { word: "入境表", pinyin: "rù jìng biǎo", options: ["rù jìng biǎo", "rú jìng biǎo", "rù jīn biǎo", "rú jīn biǎo"] },
+            { word: "選修課", pinyin: "xuǎn xiū kè", options: ["xuǎn xiū kè", "xuán xiū kè", "xuǎn xiù kè", "xuán xiù kè"] },
+            { word: "免稅店", pinyin: "miǎn shuì diàn", options: ["miǎn shuì diàn", "mián shuì diàn", "miǎn suì diàn", "mián suì diàn"] },
+            { word: "學期", pinyin: "xué qī", options: ["xué qī", "xuě qī", "xué qí", "xuě qí"] },
+            { word: "導遊", pinyin: "dǎo yóu", options: ["dǎo yóu", "dào yóu", "dáo yóu", "dāo yóu"] }
+        ];
+
+        // 遊戲變量
+        let currentQuestion = 0;
+        let score = 0;
+        let questions = [];
+        
+        // DOM元素
+        const characterDisplay = document.getElementById('character');
+        const optionsContainer = document.getElementById('options');
+        const scoreDisplay = document.getElementById('score');
+        const totalDisplay = document.getElementById('total');
+        const feedbackDisplay = document.getElementById('feedback');
+        const nextBtn = document.getElementById('next-btn');
+        const resultDiv = document.getElementById('result');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const finalTotalDisplay = document.getElementById('final-total');
+        const resultMessage = document.getElementById('result-message');
+        const restartBtn = document.getElementById('restart-btn');
+        const progressBar = document.getElementById('progress');
+        
+        // 初始化遊戲
+        function initGame() {
+            currentQuestion = 0;
+            score = 0;
+            
+            // 隨機選擇10個問題
+            questions = [...vocabulary];
+            shuffleArray(questions);
+            questions = questions.slice(0, 10);
+            
+            // 更新顯示
+            totalDisplay.textContent = questions.length;
+            scoreDisplay.textContent = score;
+            
+            // 顯示第一個問題
+            showQuestion();
+            
+            // 隱藏結果div
+            resultDiv.classList.add('hidden');
+        }
+        
+        // 顯示問題
+        function showQuestion() {
+            if (currentQuestion >= questions.length) {
+                endGame();
+                return;
+            }
+            
+            const question = questions[currentQuestion];
+            
+            // 更新進度條
+            progressBar.style.width = `${(currentQuestion / questions.length) * 100}%`;
+            
+            // 顯示中文字
+            characterDisplay.textContent = question.word;
+            
+            // 清空選項容器
+            optionsContainer.innerHTML = '';
+            
+            // 隨機排序選項
+            const shuffledOptions = [...question.options];
+            shuffleArray(shuffledOptions);
+            
+            // 創建選項按鈕
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option;
+                button.onclick = () => checkAnswer(option, question.pinyin);
+                optionsContainer.appendChild(button);
+            });
+            
+            // 重置反饋和下一題按鈕
+            feedbackDisplay.textContent = '';
+            feedbackDisplay.className = 'feedback';
+            nextBtn.classList.add('hidden');
+        }
+        
+        // 檢查答案
+        function checkAnswer(selectedOption, correctAnswer) {
+            // 禁用所有選項按鈕
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(button => {
+                button.disabled = true;
+                if (button.textContent === correctAnswer) {
+                    button.style.backgroundColor = '#27ae60';
+                } else if (button.textContent === selectedOption && selectedOption !== correctAnswer) {
+                    button.style.backgroundColor = '#e74c3c';
+                }
+            });
+            
+            if (selectedOption === correctAnswer) {
+                score++;
+                scoreDisplay.textContent = score;
+                feedbackDisplay.textContent = '正確！';
+                feedbackDisplay.className = 'feedback correct';
+            } else {
+                feedbackDisplay.textContent = `錯誤！正確答案是: ${correctAnswer}`;
+                feedbackDisplay.className = 'feedback incorrect';
+            }
+            
+            nextBtn.classList.remove('hidden');
+        }
+        
+        // 下一題
+        function nextQuestion() {
+            currentQuestion++;
+            showQuestion();
+        }
+        
+        // 結束遊戲
+        function endGame() {
+            finalScoreDisplay.textContent = score;
+            finalTotalDisplay.textContent = questions.length;
+            
+            // 根據分數顯示不同訊息
+            const percentage = (score / questions.length) * 100;
+            if (percentage >= 80) {
+                resultMessage.textContent = '太棒了！你是拼音高手！';
+            } else if (percentage >= 60) {
+                resultMessage.textContent = '表現不錯，繼續努力！';
+            } else if (percentage >= 40) {
+                resultMessage.textContent = '需要多練習哦！';
+            } else {
+                resultMessage.textContent = '建議從基礎拼音開始複習！';
+            }
+            
+            resultDiv.classList.remove('hidden');
+        }
+        
+        // 輔助函數：隨機排序陣列
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        // 事件監聽器
+        nextBtn.addEventListener('click', nextQuestion);
+        restartBtn.addEventListener('click', initGame);
+        
+        // 開始遊戲
+        initGame();
+    </script>
+</body>
+</html>

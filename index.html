@@ -1,295 +1,351 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>留學旅行拼音挑戰</title>
+    <title>普通話拼音遊戲</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                    }
+                }
+            },
+            darkMode: 'class'
+        }
+    </script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap');
+        
         body {
-            font-family: 'Microsoft JhengHei', Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-            color: #333;
+            font-family: 'Noto Sans TC', sans-serif;
         }
-        .container {
-            background-color: white;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        
+        .choice-btn {
+            transition: all 0.2s ease;
         }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 30px;
+        
+        .choice-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(93, 92, 222, 0.3);
         }
-        .character-display {
-            font-size: 72px;
-            text-align: center;
-            margin: 30px 0;
-            color: #e74c3c;
-        }
-        .options-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        .option-btn {
-            padding: 15px;
-            font-size: 18px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .option-btn:hover {
-            background-color: #2980b9;
-        }
-        .score-display {
-            text-align: center;
-            font-size: 20px;
-            margin: 20px 0;
-        }
-        .progress-bar {
-            height: 10px;
-            background-color: #ecf0f1;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .progress {
-            height: 100%;
-            background-color: #2ecc71;
-            border-radius: 5px;
-            width: 0%;
-            transition: width 0.5s;
-        }
-        .feedback {
-            text-align: center;
-            min-height: 30px;
-            font-size: 18px;
-            margin: 15px 0;
-        }
+        
         .correct {
-            color: #27ae60;
+            background-color: #10B981 !important;
+            border-color: #10B981 !important;
+            color: white !important;
         }
+        
         .incorrect {
-            color: #e74c3c;
+            background-color: #EF4444 !important;
+            border-color: #EF4444 !important;
+            color: white !important;
         }
-        .next-btn, .restart-btn {
-            display: block;
-            margin: 20px auto;
-            padding: 12px 25px;
-            font-size: 18px;
-            background-color: #2ecc71;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .restart-btn {
-            background-color: #e74c3c;
-        }
-        .hidden {
-            display: none;
+        
+        .disabled {
+            pointer-events: none;
+            opacity: 0.6;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>留學旅行拼音挑戰</h1>
-        
-        <div class="progress-bar">
-            <div class="progress" id="progress"></div>
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-2xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-primary mb-2">普通話拼音遊戲</h1>
+            <p class="text-gray-600 dark:text-gray-300">學校交流團 × 旅遊場景</p>
         </div>
-        
-        <div class="score-display">
-            得分: <span id="score">0</span> / <span id="total">0</span>
+
+        <!-- Score and Progress -->
+        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-6 flex justify-between items-center">
+            <div class="text-sm">
+                <span class="text-gray-600 dark:text-gray-300">分數：</span>
+                <span id="score" class="font-semibold text-primary">0</span>
+            </div>
+            <div class="text-sm">
+                <span class="text-gray-600 dark:text-gray-300">題目：</span>
+                <span id="questionCount" class="font-semibold">1</span>
+            </div>
+            <div class="text-sm">
+                <span class="text-gray-600 dark:text-gray-300">正確率：</span>
+                <span id="accuracy" class="font-semibold text-green-600">0%</span>
+            </div>
         </div>
-        
-        <div class="character-display" id="character"></div>
-        
-        <div class="options-container" id="options"></div>
-        
-        <div class="feedback" id="feedback"></div>
-        
-        <button class="next-btn hidden" id="next-btn">下一題</button>
-        
-        <div id="result" class="hidden">
-            <h2>測驗完成！</h2>
-            <p>你的最終得分是: <span id="final-score">0</span> / <span id="final-total">0</span></p>
-            <p id="result-message"></p>
-            <button class="restart-btn" id="restart-btn">再玩一次</button>
+
+        <!-- Game Area -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-6">
+            <!-- Chinese Word Display -->
+            <div class="text-center mb-8">
+                <div class="text-6xl font-bold text-primary mb-4" id="chineseWord">載入中...</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400" id="wordMeaning"></div>
+            </div>
+
+            <!-- Multiple Choice Options -->
+            <div class="grid grid-cols-1 gap-3 mb-6" id="choicesContainer">
+                <!-- Choices will be generated by JavaScript -->
+            </div>
+
+            <!-- Feedback Area -->
+            <div id="feedback" class="text-center text-sm min-h-[24px] mb-4"></div>
+
+            <!-- Next Button -->
+            <div class="text-center">
+                <button id="nextBtn" 
+                        class="bg-primary hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled>
+                    下一題
+                </button>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 text-sm">
+            <h3 class="font-semibold text-blue-800 dark:text-blue-200 mb-2">遊戲說明</h3>
+            <ul class="text-blue-700 dark:text-blue-300 space-y-1">
+                <li>• 看中文詞語，選擇正確的拼音</li>
+                <li>• 詞彙來源：學校交流團和旅遊場景</li>
+                <li>• 注意聲調符號的正確性</li>
+            </ul>
         </div>
     </div>
 
     <script>
-        // 詞庫 - 學校交流與旅行相關詞彙
-        const vocabulary = [
-            { word: "簽證", pinyin: "qiān zhèng", options: ["qiān zhèng", "qián zhèng", "qiǎn zhèng", "qiàn zhèng"] },
-            { word: "宿舍", pinyin: "sù shè", options: ["sù shè", "shù shè", "sù shě", "shù shě"] },
-            { word: "行李箱", pinyin: "xíng lǐ xiāng", options: ["xíng lǐ xiāng", "xíng lǐ xiàng", "xìn lǐ xiāng", "xìn lǐ xiàng"] },
-            { word: "交流生", pinyin: "jiāo liú shēng", options: ["jiāo liú shēng", "jiǎo liú shēng", "jiāo liú shén", "jiǎo liú shén"] },
-            { word: "登機牌", pinyin: "dēng jī pái", options: ["dēng jī pái", "déng jī pái", "dēng jī pāi", "déng jī pāi"] },
-            { word: "學生證", pinyin: "xué shēng zhèng", options: ["xué shēng zhèng", "xuě shēng zhèng", "xué shén zhèng", "xuě shén zhèng"] },
-            { word: "轉機", pinyin: "zhuǎn jī", options: ["zhuǎn jī", "zhuàn jī", "zuǎn jī", "zuàn jī"] },
-            { word: "學分", pinyin: "xué fēn", options: ["xué fēn", "xuě fēn", "xué fén", "xuě fén"] },
-            { word: "護照", pinyin: "hù zhào", options: ["hù zhào", "hú zhào", "hù zào", "hú zào"] },
-            { word: "寄宿家庭", pinyin: "jì sù jiā tíng", options: ["jì sù jiā tíng", "jī sù jiā tíng", "jì shù jiā tíng", "jī shù jiā tíng"] },
-            { word: "入境表", pinyin: "rù jìng biǎo", options: ["rù jìng biǎo", "rú jìng biǎo", "rù jīn biǎo", "rú jīn biǎo"] },
-            { word: "選修課", pinyin: "xuǎn xiū kè", options: ["xuǎn xiū kè", "xuán xiū kè", "xuǎn xiù kè", "xuán xiù kè"] },
-            { word: "免稅店", pinyin: "miǎn shuì diàn", options: ["miǎn shuì diàn", "mián shuì diàn", "miǎn suì diàn", "mián suì diàn"] },
-            { word: "學期", pinyin: "xué qī", options: ["xué qī", "xuě qī", "xué qí", "xuě qí"] },
-            { word: "導遊", pinyin: "dǎo yóu", options: ["dǎo yóu", "dào yóu", "dáo yóu", "dāo yóu"] }
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Word database with Chinese words, pinyin, and meanings
+        const wordDatabase = [
+            // School Exchange
+            { word: "學校", pinyin: "xuéxiào", meaning: "教育機構" },
+            { word: "交流", pinyin: "jiāoliú", meaning: "互相學習" },
+            { word: "學生", pinyin: "xuéshēng", meaning: "在校學習的人" },
+            { word: "老師", pinyin: "lǎoshī", meaning: "教書的人" },
+            { word: "課程", pinyin: "kèchéng", meaning: "教學內容" },
+            { word: "宿舍", pinyin: "sùshè", meaning: "學生住宿的地方" },
+            { word: "圖書館", pinyin: "túshūguǎn", meaning: "藏書和閱讀的地方" },
+            { word: "教室", pinyin: "jiàoshì", meaning: "上課的房間" },
+            { word: "考試", pinyin: "kǎoshì", meaning: "測驗學習成果" },
+            { word: "作業", pinyin: "zuòyè", meaning: "課後練習" },
+            { word: "同學", pinyin: "tóngxué", meaning: "一起學習的人" },
+            { word: "校園", pinyin: "xiàoyuán", meaning: "學校的範圍" },
+            { word: "食堂", pinyin: "shítáng", meaning: "學校餐廳" },
+            { word: "實習", pinyin: "shíxí", meaning: "實際練習" },
+            { word: "畢業", pinyin: "bìyè", meaning: "完成學業" },
+            
+            // Travel
+            { word: "旅遊", pinyin: "lǚyóu", meaning: "外出遊玩" },
+            { word: "機場", pinyin: "jīchǎng", meaning: "飛機起降的地方" },
+            { word: "飯店", pinyin: "fàndiàn", meaning: "提供住宿的地方" },
+            { word: "餐廳", pinyin: "cāntīng", meaning: "用餐的地方" },
+            { word: "博物館", pinyin: "bówùguǎn", meaning: "展示文物的地方" },
+            { word: "景點", pinyin: "jǐngdiǎn", meaning: "風景名勝" },
+            { word: "地鐵", pinyin: "dìtiě", meaning: "地下鐵路" },
+            { word: "公車", pinyin: "gōngchē", meaning: "公共汽車" },
+            { word: "購物", pinyin: "gòuwù", meaning: "買東西" },
+            { word: "導遊", pinyin: "dǎoyóu", meaning: "帶領旅遊的人" },
+            { word: "護照", pinyin: "hùzhào", meaning: "出國身份證明" },
+            { word: "簽證", pinyin: "qiānzhèng", meaning: "入境許可" },
+            { word: "行李", pinyin: "xínglǐ", meaning: "旅行時攜帶的物品" },
+            { word: "車站", pinyin: "chēzhàn", meaning: "車輛停靠的地方" },
+            { word: "計程車", pinyin: "jìchéngchē", meaning: "按距離收費的車" },
+            { word: "觀光", pinyin: "guānguāng", meaning: "遊覽參觀" },
+            { word: "紀念品", pinyin: "jìniànpǐn", meaning: "留作紀念的物品" },
+            { word: "風景", pinyin: "fēngjǐng", meaning: "自然景色" },
+            { word: "文化", pinyin: "wénhuà", meaning: "人類文明成果" },
+            { word: "傳統", pinyin: "chuántǒng", meaning: "世代相傳的習俗" }
         ];
 
-        // 遊戲變量
-        let currentQuestion = 0;
+        let currentWord = {};
+        let choices = [];
         let score = 0;
-        let questions = [];
-        
-        // DOM元素
-        const characterDisplay = document.getElementById('character');
-        const optionsContainer = document.getElementById('options');
-        const scoreDisplay = document.getElementById('score');
-        const totalDisplay = document.getElementById('total');
-        const feedbackDisplay = document.getElementById('feedback');
-        const nextBtn = document.getElementById('next-btn');
-        const resultDiv = document.getElementById('result');
-        const finalScoreDisplay = document.getElementById('final-score');
-        const finalTotalDisplay = document.getElementById('final-total');
-        const resultMessage = document.getElementById('result-message');
-        const restartBtn = document.getElementById('restart-btn');
-        const progressBar = document.getElementById('progress');
-        
-        // 初始化遊戲
-        function initGame() {
-            currentQuestion = 0;
-            score = 0;
-            
-            // 隨機選擇10個問題
-            questions = [...vocabulary];
-            shuffleArray(questions);
-            questions = questions.slice(0, 10);
-            
-            // 更新顯示
-            totalDisplay.textContent = questions.length;
-            scoreDisplay.textContent = score;
-            
-            // 顯示第一個問題
-            showQuestion();
-            
-            // 隱藏結果div
-            resultDiv.classList.add('hidden');
+        let questionCount = 0;
+        let correctAnswers = 0;
+
+        // Generate similar pinyin options
+        function generateWrongPinyin(correctPinyin) {
+            const toneMarks = {
+                'ā': ['á', 'ǎ', 'à', 'a'],
+                'á': ['ā', 'ǎ', 'à', 'a'],
+                'ǎ': ['ā', 'á', 'à', 'a'],
+                'à': ['ā', 'á', 'ǎ', 'a'],
+                'ē': ['é', 'ě', 'è', 'e'],
+                'é': ['ē', 'ě', 'è', 'e'],
+                'ě': ['ē', 'é', 'è', 'e'],
+                'è': ['ē', 'é', 'ě', 'e'],
+                'ī': ['í', 'ǐ', 'ì', 'i'],
+                'í': ['ī', 'ǐ', 'ì', 'i'],
+                'ǐ': ['ī', 'í', 'ì', 'i'],
+                'ì': ['ī', 'í', 'ǐ', 'i'],
+                'ō': ['ó', 'ǒ', 'ò', 'o'],
+                'ó': ['ō', 'ǒ', 'ò', 'o'],
+                'ǒ': ['ō', 'ó', 'ò', 'o'],
+                'ò': ['ō', 'ó', 'ǒ', 'o'],
+                'ū': ['ú', 'ǔ', 'ù', 'u'],
+                'ú': ['ū', 'ǔ', 'ù', 'u'],
+                'ǔ': ['ū', 'ú', 'ù', 'u'],
+                'ù': ['ū', 'ú', 'ǔ', 'u'],
+                'ü': ['ǘ', 'ǚ', 'ǜ', 'v'],
+                'ǘ': ['ü', 'ǚ', 'ǜ', 'v'],
+                'ǚ': ['ü', 'ǘ', 'ǜ', 'v'],
+                'ǜ': ['ü', 'ǘ', 'ǚ', 'v']
+            };
+
+            const similarConsonants = {
+                'b': ['p', 'd'],
+                'p': ['b', 't'],
+                'd': ['t', 'b'],
+                't': ['d', 'p'],
+                'g': ['k'],
+                'k': ['g'],
+                'j': ['zh', 'z'],
+                'q': ['ch', 'c'],
+                'x': ['sh', 's'],
+                'z': ['j', 'zh'],
+                'c': ['q', 'ch'],
+                's': ['x', 'sh'],
+                'zh': ['j', 'z'],
+                'ch': ['q', 'c'],
+                'sh': ['x', 's'],
+                'l': ['n'],
+                'n': ['l'],
+                'r': ['l']
+            };
+
+            let wrongOptions = [];
+
+            // Generate tone variations
+            for (let char of correctPinyin) {
+                if (toneMarks[char]) {
+                    let variations = toneMarks[char];
+                    for (let variation of variations) {
+                        let wrongPinyin = correctPinyin.replace(char, variation);
+                        if (wrongPinyin !== correctPinyin) {
+                            wrongOptions.push(wrongPinyin);
+                        }
+                    }
+                }
+            }
+
+            // Generate consonant variations
+            for (let consonant in similarConsonants) {
+                if (correctPinyin.includes(consonant)) {
+                    for (let similar of similarConsonants[consonant]) {
+                        let wrongPinyin = correctPinyin.replace(consonant, similar);
+                        if (wrongPinyin !== correctPinyin) {
+                            wrongOptions.push(wrongPinyin);
+                        }
+                    }
+                }
+            }
+
+            // Shuffle and return unique options
+            wrongOptions = [...new Set(wrongOptions)];
+            return wrongOptions.sort(() => Math.random() - 0.5);
         }
-        
-        // 顯示問題
-        function showQuestion() {
-            if (currentQuestion >= questions.length) {
-                endGame();
-                return;
+
+        function generateNewQuestion() {
+            // Select random word
+            currentWord = wordDatabase[Math.floor(Math.random() * wordDatabase.length)];
+            
+            // Generate wrong options
+            let wrongPinyins = generateWrongPinyin(currentWord.pinyin);
+            
+            // Create choices array with correct answer and 3 wrong options
+            choices = [currentWord.pinyin];
+            while (choices.length < 4 && wrongPinyins.length > 0) {
+                choices.push(wrongPinyins.pop());
             }
             
-            const question = questions[currentQuestion];
+            // If not enough variations, add some common wrong patterns
+            while (choices.length < 4) {
+                choices.push(currentWord.pinyin.replace(/[āáǎàēéěèīíǐìōóǒòūúǔùüǘǚǜ]/g, 'a'));
+            }
             
-            // 更新進度條
-            progressBar.style.width = `${(currentQuestion / questions.length) * 100}%`;
+            // Shuffle choices
+            choices = choices.sort(() => Math.random() - 0.5);
             
-            // 顯示中文字
-            characterDisplay.textContent = question.word;
-            
-            // 清空選項容器
-            optionsContainer.innerHTML = '';
-            
-            // 隨機排序選項
-            const shuffledOptions = [...question.options];
-            shuffleArray(shuffledOptions);
-            
-            // 創建選項按鈕
-            shuffledOptions.forEach(option => {
-                const button = document.createElement('button');
-                button.className = 'option-btn';
-                button.textContent = option;
-                button.onclick = () => checkAnswer(option, question.pinyin);
-                optionsContainer.appendChild(button);
-            });
-            
-            // 重置反饋和下一題按鈕
-            feedbackDisplay.textContent = '';
-            feedbackDisplay.className = 'feedback';
-            nextBtn.classList.add('hidden');
+            // Update UI
+            questionCount++;
+            updateDisplay();
         }
-        
-        // 檢查答案
-        function checkAnswer(selectedOption, correctAnswer) {
-            // 禁用所有選項按鈕
-            const buttons = document.querySelectorAll('.option-btn');
-            buttons.forEach(button => {
-                button.disabled = true;
-                if (button.textContent === correctAnswer) {
-                    button.style.backgroundColor = '#27ae60';
-                } else if (button.textContent === selectedOption && selectedOption !== correctAnswer) {
-                    button.style.backgroundColor = '#e74c3c';
+
+        function updateDisplay() {
+            document.getElementById('chineseWord').textContent = currentWord.word;
+            document.getElementById('wordMeaning').textContent = currentWord.meaning;
+            document.getElementById('questionCount').textContent = questionCount;
+            document.getElementById('score').textContent = score;
+            document.getElementById('accuracy').textContent = 
+                questionCount > 1 ? Math.round((correctAnswers / (questionCount - 1)) * 100) + '%' : '0%';
+            
+            // Clear feedback
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('nextBtn').disabled = true;
+            
+            // Generate choice buttons
+            const container = document.getElementById('choicesContainer');
+            container.innerHTML = '';
+            
+            choices.forEach((choice, index) => {
+                const button = document.createElement('button');
+                button.className = 'choice-btn bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border-2 border-gray-200 dark:border-gray-600 rounded-lg p-4 text-left font-medium text-lg transition-all';
+                button.textContent = choice;
+                button.onclick = () => selectAnswer(choice, button);
+                container.appendChild(button);
+            });
+        }
+
+        function selectAnswer(selectedPinyin, buttonElement) {
+            const isCorrect = selectedPinyin === currentWord.pinyin;
+            const buttons = document.querySelectorAll('.choice-btn');
+            
+            // Disable all buttons
+            buttons.forEach(btn => btn.classList.add('disabled'));
+            
+            // Mark correct and incorrect answers
+            buttons.forEach(btn => {
+                if (btn.textContent === currentWord.pinyin) {
+                    btn.classList.add('correct');
+                } else if (btn === buttonElement && !isCorrect) {
+                    btn.classList.add('incorrect');
                 }
             });
             
-            if (selectedOption === correctAnswer) {
-                score++;
-                scoreDisplay.textContent = score;
-                feedbackDisplay.textContent = '正確！';
-                feedbackDisplay.className = 'feedback correct';
+            // Update score and feedback
+            if (isCorrect) {
+                score += 10;
+                correctAnswers++;
+                document.getElementById('feedback').innerHTML = 
+                    '<span class="text-green-600 font-semibold">✓ 正確！很棒！</span>';
             } else {
-                feedbackDisplay.textContent = `錯誤！正確答案是: ${correctAnswer}`;
-                feedbackDisplay.className = 'feedback incorrect';
+                document.getElementById('feedback').innerHTML = 
+                    `<span class="text-red-600 font-semibold">✗ 錯誤！正確答案是：${currentWord.pinyin}</span>`;
             }
             
-            nextBtn.classList.remove('hidden');
+            // Enable next button
+            document.getElementById('nextBtn').disabled = false;
         }
-        
-        // 下一題
+
         function nextQuestion() {
-            currentQuestion++;
-            showQuestion();
+            generateNewQuestion();
         }
-        
-        // 結束遊戲
-        function endGame() {
-            finalScoreDisplay.textContent = score;
-            finalTotalDisplay.textContent = questions.length;
-            
-            // 根據分數顯示不同訊息
-            const percentage = (score / questions.length) * 100;
-            if (percentage >= 80) {
-                resultMessage.textContent = '太棒了！你是拼音高手！';
-            } else if (percentage >= 60) {
-                resultMessage.textContent = '表現不錯，繼續努力！';
-            } else if (percentage >= 40) {
-                resultMessage.textContent = '需要多練習哦！';
-            } else {
-                resultMessage.textContent = '建議從基礎拼音開始複習！';
-            }
-            
-            resultDiv.classList.remove('hidden');
-        }
-        
-        // 輔助函數：隨機排序陣列
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-        
-        // 事件監聽器
-        nextBtn.addEventListener('click', nextQuestion);
-        restartBtn.addEventListener('click', initGame);
-        
-        // 開始遊戲
-        initGame();
+
+        // Event listeners
+        document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+
+        // Initialize game
+        generateNewQuestion();
     </script>
 </body>
 </html>
